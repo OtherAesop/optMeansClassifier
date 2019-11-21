@@ -25,8 +25,9 @@ def make_datasets(filepath):  # Separates labels and preps data sets
 
 def map_classes(data_set, label_set):  # takes a datasets and a corresponding labelset and summarizes
     data_sum = dict()
-    if len(data_set) != len(label_set):  # Shoot warning if user passes mismatching elements
-        print("ERROR: Mismatching label and attribute sets")
+    if len(data_set) != len(label_set):  # Fails if user passes mismatching arrays
+        print("ERROR: Mismatching label and attribute sets; terminating.")
+        return data_sum
 
     for _ in range(len(data_set)):  # Iterate through list and remove and summarize data
         if label_set[0] not in data_sum.keys():  # Key does not exist, make new list

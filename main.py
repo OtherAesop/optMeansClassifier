@@ -33,7 +33,7 @@ def test_network(training_file, testing_file, k=10, iterations=5, verbose=False)
     return test_time, results
 
 
-total_time, results = test_network("datasets/optdigits.train", "datasets/optdigits.test", 10, 5, False)
+total_time, results = test_network("datasets/optdigits.train", "datasets/optdigits.test", 10, 1, True)
 
 
 print(f'All tests completed in {helper.translate_seconds(total_time)}.\n')
