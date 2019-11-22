@@ -48,7 +48,6 @@ def entropy(cluster):
             label_dict[p.label] = 1
         else:
             label_dict[p.label] += 1
-    print(label_dict)
     accumulator = 0
     for class_label in label_dict:  # mi/m * entropy(ci)
         mi = label_dict[class_label]
@@ -122,13 +121,10 @@ def kmeans(training_file, test_file, k=10, seed=1, verbose=False):
         # helper.print_clusters(clusters)
         helper.print_stats(mse_, mss_, ent_)
 
-    update_clusters(clusters)
-    # Return Mean Square Error, Mean-Square-Separation, and Mean Entropy (using class labels)
-    mse_, mss_, ent_ = calc_kmeans_stats(clusters)
-
-    if verbose:
-        # helper.print_clusters(clusters)
-        helper.print_stats(mse_, mss_, ent_)
-
+    while update_clusters(clusters):
+        mse_, mss_, ent_ = calc_kmeans_stats(clusters)
+        if verbose:
+            helper.print_stats(mse_, mss_, ent_)
+    
     return mse_, mss_, ent_
 # EOF
