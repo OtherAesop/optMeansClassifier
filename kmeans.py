@@ -1,6 +1,7 @@
 import utility as helper
 import random as rand
 import math
+import numpy as np
 import itertools as it
 
 
@@ -18,11 +19,18 @@ class Cluster(object):
 
 # Possibly need root to match mss function?
 def dist(x_vec, y_vec):  # Euclidean distance, takes and returns list
-    return math.sqrt(sum([(a - b) ** 2 for a, b in zip(x_vec, y_vec)]))
+    return math.sqrt(sum([(float(a) - float(b)) ** 2 for a, b in zip(x_vec, y_vec)]))
 
 
-def mse(x_vec, y_vec, ax):
-    return ((x_vec - y_vec)**2).mean(axis=ax)
+def mse(x_vec, y_vec):
+    return np.square([(float(a) - float(b)) for a, b in zip(x_vec, y_vec)]).mean()
+
+
+def average_mse(cluster):
+    accumulator = 0
+    for point in cluster.points:
+        accumulator += mse(point.features, cluster.center)
+    return accumulator
 
 
 def mss(cluster_centers, k):  # I would be very impressed if this worked
@@ -40,6 +48,7 @@ def entropy(cluster):
             label_dict[p.label] = 1
         else:
             label_dict[p.label] += 1
+    print(label_dict)
     accumulator = 0
     for class_label in label_dict:  # mi/m * entropy(ci)
         mi = label_dict[class_label]
@@ -47,6 +56,54 @@ def entropy(cluster):
     return -accumulator  # entropy(ci)
 
 
+# Calculates euclidean distance and updates cluster membership
+def update_clusters(clusters):
+    centers = list()
+    changed = False
+    for cluster in clusters:  # need cluster centers
+        centers.append(cluster.center)
+    # Find Euclidean distance for all points and update membership
+    for (cl_from_dex, cluster) in enumerate(clusters):
+        for (from_dex, point) in enumerate(cluster.points):
+            euc_distance = list()
+            for center in centers:
+                euc_distance.append(dist(point.features, center))
+            mindex = euc_distance.index(min(euc_distance))
+            if cl_from_dex != mindex:  # the source cluster != best cluster
+                clusters[mindex].points.append(cluster.points.pop(from_dex))
+                changed = True
+    # Calculate cluster center
+    for cluster in clusters:
+        m = len(cluster.points)
+        accumulator = [0] * m  # Must be the same size as the feature vector
+        for point in cluster.points:
+            accumulator = [(float(a) + float(b)) for a, b in zip(accumulator, point.features)]
+        # print(accumulator)
+        cluster.center = [float(x) / float(m) for x in accumulator]
+        # print(cluster.center)
+    return changed
+
+
+# Compute MSE, MSS, and Mean Entropy
+# Returns values in an ordered tuple
+def calc_kmeans_stats(clusters):
+    mse_accumulator = 0
+    entropy_accumulator = 0
+    m = 0
+    for cluster in clusters:  # count total number of instances
+        m += len(cluster.points)
+    for cluster in clusters:
+        mi = len(cluster.points)
+        mse_accumulator += average_mse(cluster)
+        entropy_accumulator += ((mi / m) * entropy(cluster))
+    mse_accumulator = mse_accumulator / len(clusters)
+
+    cluster_centers = [cluster.center for cluster in clusters]
+    mss_value = mss(cluster_centers, len(clusters))
+    return mse_accumulator, mss_value, entropy_accumulator
+
+
+# Returns Mean Squared Error, Mean Square Separation, and Mean Entropy in an ordered tuple
 def kmeans(training_file, test_file, k=10, seed=1, verbose=False):
     dataset, labelset = helper.make_datasets(training_file)  # Do input step
     rand.seed(seed)  # init by passed seed
@@ -60,31 +117,18 @@ def kmeans(training_file, test_file, k=10, seed=1, verbose=False):
     for cluster in clusters:
         cluster.center = cluster.points[rand.randrange(len(cluster.points))].features
     # Iterate the below until convergence
-    # 3) Find Euclidean distance for all points and update membership
-    centers = list()
-    for cluster in clusters:  # need cluster centers
-        centers.append(cluster.center)
-    for cluster in clusters:
-        for (from_dex, point) in enumerate(cluster.points):
-            euc_distance = list()
-            for center in centers:
-                euc_distance.append(dist(point.features, center))
-            mindex = euc_distance.index(min(euc_distance))
-            clusters[mindex].points.append(cluster.points.pop(from_dex))
-    # 4) Calculate cluster center (and update)
-    for cluster in clusters:
-        m = len(cluster.points)
-        accumulator = 0
-        for point in cluster.points:
-            accumulator += point.features
-        cluster.center = accumulator / m
-    # 5) Return Mean Square Error, Mean-Square-Separation, and Mean Entropy (using class labels)
+    mse_, mss_, ent_ = calc_kmeans_stats(clusters)
+    if verbose:
+        # helper.print_clusters(clusters)
+        helper.print_stats(mse_, mss_, ent_)
+
+    update_clusters(clusters)
+    # Return Mean Square Error, Mean-Square-Separation, and Mean Entropy (using class labels)
+    mse_, mss_, ent_ = calc_kmeans_stats(clusters)
 
     if verbose:
-        print("Cluster length: ", len(clusters))
-        for c_index, cluster in enumerate(clusters):
-            print("Cluster ", c_index+1, "Points: ", len(cluster.points), "Center: ", cluster.center)
+        # helper.print_clusters(clusters)
+        helper.print_stats(mse_, mss_, ent_)
 
-    # returns stuff as a placeholder
-    return seed, k, 456
+    return mse_, mss_, ent_
 # EOF

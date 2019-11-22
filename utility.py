@@ -23,17 +23,11 @@ def make_datasets(filepath):  # Separates labels and preps data sets
     return data_set, label_set
 
 
-def map_classes(data_set, label_set):  # takes a datasets and a corresponding labelset and summarizes
-    data_sum = dict()
-    if len(data_set) != len(label_set):  # Fails if user passes mismatching arrays
-        print("ERROR: Mismatching label and attribute sets; terminating.")
-        return data_sum
+def print_clusters(clusters):
+    print("Cluster length: ", len(clusters))
+    for c_index, cluster in enumerate(clusters):
+        print("Cluster ", c_index+1, "Points: ", len(cluster.points))
 
-    for _ in range(len(data_set)):  # Iterate through list and remove and summarize data
-        if label_set[0] not in data_sum.keys():  # Key does not exist, make new list
-            x = label_set.pop(0)  # doing it this way guarantees everything is added into the dictionary as a list...
-            data_sum[x] = []      # ...and keeps the summary neat and uniform
-            data_sum[x].append(data_set.pop(0))
-        else:  # Key does exist, append to end of list
-            data_sum[label_set.pop(0)].append(data_set.pop(0))
-    return data_sum
+
+def print_stats(mse, mss, entropy):
+    print(f"Mean Squared Error: {mse:.2f} Mean Square Separation: {mss:.2f} Mean Entropy: {entropy:.2f}")
