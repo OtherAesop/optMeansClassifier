@@ -72,7 +72,12 @@ def kmeans(training_file, test_file, k=10, seed=1, verbose=False):
             mindex = euc_distance.index(min(euc_distance))
             clusters[mindex].points.append(cluster.points.pop(from_dex))
     # 4) Calculate cluster center (and update)
-    
+    for cluster in clusters:
+        m = len(cluster.points)
+        accumulator = 0
+        for point in cluster.points:
+            accumulator += point.features
+        cluster.center = accumulator / m
     # 5) Return Mean Square Error, Mean-Square-Separation, and Mean Entropy (using class labels)
 
     if verbose:
