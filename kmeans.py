@@ -102,12 +102,9 @@ def calc_kmeans_stats(clusters):
     return mse_accumulator, mss_value, entropy_accumulator
 
 
-# Returns Mean Squared Error, Mean Square Separation, and Mean Entropy in an ordered tuple
-def kmeans(training_file, test_file, k=10, seed=1, verbose=False):
-    dataset, labelset = helper.make_datasets(training_file)  # Do input step
-    rand.seed(seed)  # init by passed seed
+# Does a run of K-means training
+def k_train(clusters, dataset, labelset, verbose):
     # Create k initial clusters and assign all points to them randomly from training data
-    clusters = [Cluster() for _ in range(k)]
     for (label_index, feature) in enumerate(dataset):
         point = Point(labelset[label_index], feature)
         cluster_index = rand.randrange(len(clusters))
@@ -125,6 +122,26 @@ def kmeans(training_file, test_file, k=10, seed=1, verbose=False):
         mse_, mss_, ent_ = calc_kmeans_stats(clusters)
         if verbose:
             helper.print_stats(mse_, mss_, ent_)
-    
+
     return mse_, mss_, ent_
+
+
+# Returns Mean Squared Error, Mean Square Separation, and Mean Entropy in an ordered tuple
+def kmeans(training_file, test_file, k=10, verbose=False):
+    dataset, labelset = helper.make_datasets(training_file)  # Do input step
+
+    # Create k initial clusters and assign all points to them randomly from training data
+    results = list()
+    mse_results = list()
+    for counter in range(5):
+        seed = rand.randint()
+        rand.seed(seed)  # init by passed seed
+        clusters = [Cluster() for _ in range(k)]
+        mse_, mss_, ent_ = k_train(clusters, dataset, labelset, verbose)
+        mse_results.append(mse_)
+        results.append([mss_, ent_, seed])
+    bestdex = mse_results.index(min(mse_results))
+    best_run = [mse_results[bestdex], results[bestdex]]
+
+    return best_run
 # EOF

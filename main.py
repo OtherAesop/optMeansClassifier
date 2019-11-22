@@ -19,21 +19,19 @@ from kmeans import kmeans
 from time import time
 
 
-def test_network(training_file, testing_file, k=10, iterations=5, verbose=False):  # function for neatness
+def test_network(training_file, testing_file, k=10, verbose=False):  # function for neatness
     print(f"Beginning training and testing of {training_file} and {testing_file}...")
     start = time()
-    results = list()
-    for _ in range(iterations):
-        seed, result1, result2 = kmeans(training_file, testing_file, k, 1, verbose)
-        results.append((seed, result1, result2))
+    seed, mse, mss, ent = kmeans(training_file, testing_file, k, verbose)
+    result = (seed, mse, mss, ent)
     end = time()
     test_time = end - start
     print(f'...ending training and testing of {training_file} and {testing_file}, process completed'
           f' in {helper.translate_seconds(test_time)} (HH:MM:SS).\n')
-    return test_time, results
+    return test_time, result
 
 
-total_time, results = test_network("datasets/optdigits.train", "datasets/optdigits.test", 10, 1, True)
+total_time, results = test_network("datasets/optdigits.train", "datasets/optdigits.test", 10, True)
 
 
 print(f'All tests completed in {helper.translate_seconds(total_time)}.\n')
