@@ -133,13 +133,17 @@ def kmeans(training_file, test_file, k=10, verbose=False):
 
     results = list()
     mse_results = list()
+    if verbose:
+        print("Starting first run...")
     for counter in range(5):
-        seed = rand.randint()
+        seed = rand.randint(0, 1000)
         rand.seed(seed)  # init by passed seed
         clusters = [Cluster() for _ in range(k)]  # create clusters
         mse_, mss_, ent_, clusters = k_train(clusters, dataset, labelset, verbose)  # cluster until convergence
         mse_results.append(mse_)  # log results
         results.append([mss_, ent_, seed])  # log results
+        if verbose:
+            print(f"Final mean squared error: {mse_}, starting run #{counter+1} of 5...")
     bestdex = mse_results.index(min(mse_results))  # find the index of the best run
     best_run = [mse_results[bestdex], results[bestdex]]  # find the best run
 
@@ -148,5 +152,6 @@ def kmeans(training_file, test_file, k=10, verbose=False):
     clusters = [Cluster() for _ in range(k)]  # create clusters
     mse_, mss_, ent_, clusters = k_train(clusters, dataset, labelset, verbose)  # cluster until convergence
 
+    print(best_run)
     return best_run
 # EOF
