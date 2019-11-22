@@ -22,8 +22,8 @@ from time import time
 def test_network(training_file, testing_file, k=10, verbose=False):  # function for neatness
     print(f"Beginning training and testing of {training_file} and {testing_file}...")
     start = time()
-    seed, mse, mss, ent = kmeans(training_file, testing_file, k, verbose)
-    result = (seed, mse, mss, ent)
+    mse, mss, ent, seed = kmeans(training_file, testing_file, k, verbose)
+    result = (mse, mss, ent, seed)
     end = time()
     test_time = end - start
     print(f'...ending training and testing of {training_file} and {testing_file}, process completed'

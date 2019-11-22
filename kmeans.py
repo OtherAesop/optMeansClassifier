@@ -123,25 +123,30 @@ def k_train(clusters, dataset, labelset, verbose):
         if verbose:
             helper.print_stats(mse_, mss_, ent_)
 
-    return mse_, mss_, ent_
+    return mse_, mss_, ent_, clusters
 
 
 # Returns Mean Squared Error, Mean Square Separation, and Mean Entropy in an ordered tuple
 def kmeans(training_file, test_file, k=10, verbose=False):
     dataset, labelset = helper.make_datasets(training_file)  # Do input step
+    t_data, t_labels = helper.make_datasets(test_file)
 
-    # Create k initial clusters and assign all points to them randomly from training data
     results = list()
     mse_results = list()
     for counter in range(5):
         seed = rand.randint()
         rand.seed(seed)  # init by passed seed
-        clusters = [Cluster() for _ in range(k)]
-        mse_, mss_, ent_ = k_train(clusters, dataset, labelset, verbose)
-        mse_results.append(mse_)
-        results.append([mss_, ent_, seed])
-    bestdex = mse_results.index(min(mse_results))
-    best_run = [mse_results[bestdex], results[bestdex]]
+        clusters = [Cluster() for _ in range(k)]  # create clusters
+        mse_, mss_, ent_, clusters = k_train(clusters, dataset, labelset, verbose)  # cluster until convergence
+        mse_results.append(mse_)  # log results
+        results.append([mss_, ent_, seed])  # log results
+    bestdex = mse_results.index(min(mse_results))  # find the index of the best run
+    best_run = [mse_results[bestdex], results[bestdex]]  # find the best run
+
+    # Train new 'best' clustering
+    rand.seed(best_run[3])  # init by passed seed
+    clusters = [Cluster() for _ in range(k)]  # create clusters
+    mse_, mss_, ent_, clusters = k_train(clusters, dataset, labelset, verbose)  # cluster until convergence
 
     return best_run
 # EOF
