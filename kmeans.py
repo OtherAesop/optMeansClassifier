@@ -130,12 +130,13 @@ def k_train(clusters, dataset, labelset, verbose):
 def kmeans(training_file, test_file, k=10, verbose=False):
     dataset, labelset = helper.make_datasets(training_file)  # Do input step
     t_data, t_labels = helper.make_datasets(test_file)
+    c_matrix = [[0] * k] * k  # 2d array of size k^2
 
     results = list()
     mse_results = list()
     if verbose:
         print("Starting first run...")
-    for counter in range(5):
+    for counter in range(1):
         seed = rand.randint(0, 1000)
         rand.seed(seed)  # init by passed seed
         clusters = [Cluster() for _ in range(k)]  # create clusters
@@ -145,13 +146,51 @@ def kmeans(training_file, test_file, k=10, verbose=False):
         if verbose:
             print(f"Final mean squared error: {mse_}, starting run #{counter+1} of 5...")
     bestdex = mse_results.index(min(mse_results))  # find the index of the best run
-    best_run = [mse_results[bestdex], results[bestdex]]  # find the best run
+    x, y, z = results[bestdex]
+    best_run = [mse_results[bestdex], x, y, z]  # find the best run
 
     # Train new 'best' clustering
     rand.seed(best_run[3])  # init by passed seed
     clusters = [Cluster() for _ in range(k)]  # create clusters
     mse_, mss_, ent_, clusters = k_train(clusters, dataset, labelset, verbose)  # cluster until convergence
 
+    # Associate clusters with most frequent class label
+    cluster_labels = list()
+    for cluster in clusters:
+        label_dict = dict()
+        for p in cluster.points:
+            if p.label not in label_dict:
+                label_dict[p.label] = 1
+            else:
+                label_dict[p.label] += 1
+        bigval = max(val for key, val in label_dict.items())
+        choice_labels = list()
+        for key, val in label_dict.items():  # Find all key-val pairs that are the largest value from the original dict
+            if val == bigval:
+                choice_labels.append(key)
+        biggest_key = rand.choice(choice_labels)
+        cluster_labels.append(biggest_key)
+
+    # Classify data to closest cluster
+    centers = list()
+    acc_pred = 0
+    for cluster in clusters:  # need cluster centers
+        centers.append(cluster.center)
+    for features, label in zip(t_data, t_labels):
+        euc_distance = list()
+        for center in centers:
+            euc_distance.append(dist(features, center))
+        mindex = euc_distance.index(min(euc_distance))
+        prediction = int(cluster_labels[mindex])  # Make confusion matrix
+        actual = int(label)
+        c_matrix[prediction-1][actual-1] += 1
+        if prediction == actual:
+            acc_pred += 1
+    total_acc = acc_pred / len(t_labels)
+
+    helper.print_results_matrix(c_matrix, total_acc)
+
     print(best_run)
+    print(cluster_labels)
     return best_run
 # EOF

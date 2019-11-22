@@ -1,4 +1,5 @@
 from csv import reader
+import texttable as ttable
 
 
 def translate_seconds(seconds):  # gives HH:MM:SS as str
@@ -31,3 +32,17 @@ def print_clusters(clusters):
 
 def print_stats(mse, mss, entropy):
     print(f"Mean Squared Error: {mse:.2f} Mean Square Separation: {mss:.2f} Mean Entropy: {entropy:.2f}")
+
+
+def print_results_matrix(matrix, total_acc):
+
+    table1 = ttable.Texttable().set_cols_align(["c", "c", "c", "c", "c", "c", "c", "c", "c", "c", "c", "c"]) \
+        .set_cols_valign(["c", "c", "c", "c", "c", "c", "c", "c", "c", "c", "c", "c"]) \
+        .set_cols_width(["9", "9", "9", "9", "9", "9", "9", "9", "9", "9", "14", "12"]) \
+        .add_row(["0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "Predicted x Actual", "Accuracy"]) \
+        .add_rows(matrix, False) \
+        .add_row(["-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "Total Avg Acc", total_acc])
+
+    table_str = table1.draw() + "\n"
+    print(table_str)
+    return table_str
