@@ -61,7 +61,18 @@ def kmeans(training_file, test_file, k=10, seed=1, verbose=False):
         cluster.center = cluster.points[rand.randrange(len(cluster.points))].features
     # Iterate the below until convergence
     # 3) Find Euclidean distance for all points and update membership
+    centers = list()
+    for cluster in clusters:  # need cluster centers
+        centers.append(cluster.center)
+    for cluster in clusters:
+        for (from_dex, point) in enumerate(cluster.points):
+            euc_distance = list()
+            for center in centers:
+                euc_distance.append(dist(point.features, center))
+            mindex = euc_distance.index(min(euc_distance))
+            clusters[mindex].points.append(cluster.points.pop(from_dex))
     # 4) Calculate cluster center (and update)
+    
     # 5) Return Mean Square Error, Mean-Square-Separation, and Mean Entropy (using class labels)
 
     if verbose:
