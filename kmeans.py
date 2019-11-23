@@ -130,8 +130,9 @@ def k_train(clusters, dataset, labelset, verbose):
 def kmeans(training_file, test_file, k=10, verbose=False):
     dataset, labelset = helper.make_datasets(training_file)  # Do input step
     t_data, t_labels = helper.make_datasets(test_file)
-    c_matrix = [[0] * k] * k  # 2d array of size k^2
-
+    c_matrix = [[0] * (k+2) for _ in range(k)]  # 2d array of size k^2, with 2 extra columns for formatting
+    for x in range(k):  # Add 'actual' label column
+        c_matrix[x][k] = x
     results = list()
     mse_results = list()
     if verbose:
@@ -183,10 +184,18 @@ def kmeans(training_file, test_file, k=10, verbose=False):
         mindex = euc_distance.index(min(euc_distance))
         prediction = int(cluster_labels[mindex])  # Make confusion matrix
         actual = int(label)
-        c_matrix[prediction-1][actual-1] += 1
+        c_matrix[actual-1][prediction-1] += 1
         if prediction == actual:
             acc_pred += 1
-    total_acc = acc_pred / len(t_labels)
+    total_acc = (acc_pred / len(t_labels)) * 100  # Store as a %
+    for y in range(k):  # Calculate accuracy percentages
+        acc = 0
+        total = 0
+        for x in range(k):
+            if x == y:
+                acc = c_matrix[y][x]
+            total += c_matrix[y][x]
+        c_matrix[y][k+1] = (acc / total) * 100  # Linter might throw warning about the second index being a float here
 
     helper.print_results_matrix(c_matrix, total_acc)
 
