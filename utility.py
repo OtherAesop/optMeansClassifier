@@ -1,5 +1,6 @@
 from csv import reader
 import texttable as ttable
+import numpy as np
 
 
 def translate_seconds(seconds):  # gives HH:MM:SS as str
@@ -34,7 +35,7 @@ def print_stats(mse, mss, entropy):
     print(f"Mean Squared Error: {mse:.2f} Mean Square Separation: {mss:.2f} Mean Entropy: {entropy:.2f}")
 
 
-def print_results_matrix(matrix, total_acc):
+def print_results_matrix(matrix, total_acc, verbose):
 
     table1 = ttable.Texttable().set_cols_align(["c", "c", "c", "c", "c", "c", "c", "c", "c", "c", "c", "c"]) \
         .set_cols_valign(["c", "c", "c", "c", "c", "c", "c", "c", "c", "c", "c", "c"]) \
@@ -44,5 +45,41 @@ def print_results_matrix(matrix, total_acc):
         .add_row(["-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "Total Avg Acc", total_acc])
 
     table_str = table1.draw() + "\n"
-    print(table_str)
+    if verbose:
+        print(table_str)
     return table_str
+
+
+def print_cluster_centers(clusters, verbose=False):
+    cluster_visuals = list()
+    for _ in range(len(clusters)):  # make an 8x8 grid for each cluster
+        arr = np.asarray([np.asarray([0 for _ in range(8)]) for _ in range(8)])
+        if arr[0] is arr[1]:
+            print(True)
+        cluster_visuals.append(arr)
+
+    for cdex, cluster in enumerate(clusters):
+        visual = cluster_visuals[cdex]
+        copy_cluster = [x for x in cluster.center]
+        maxval = max(copy_cluster)
+        minval = min(copy_cluster)
+        for y, column in enumerate(visual):
+            for x in range(len(column)):
+                visual[y][x] = round((copy_cluster.pop() - minval) / (maxval - minval) * 255)
+
+    if verbose:
+        for cnum, visual in enumerate(cluster_visuals):
+            print("Cluster #", cnum+1)
+            for row in visual:
+                print(row)
+    return cluster_visuals
+
+
+def save(time, k, mse, mss, ent, seed, cmatrix):  # Saves important test info
+    log = open(f"test_results/kmeans_k{k}.txt", "w")
+    log.write(f"{k} clusters, {seed} seed, {time} runtime total.\n")
+    log.write("Format is as follows {Average Mean Square Error, Mean Square Separation, Mean Entropy}\n")
+    log.write(f"Average SE: {mse}, MSS: {mss}, ENT: {ent}\n")
+    log.write(f'Confusion Matrix for tests\n')
+    log.write(cmatrix)
+    log.close()

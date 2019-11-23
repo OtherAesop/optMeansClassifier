@@ -19,19 +19,23 @@ from kmeans import kmeans
 from time import time
 
 
-def test_network(training_file, testing_file, k=10, verbose=False):  # function for neatness
+def test_network(training_file, testing_file, k=10, verbose=False, save=False):  # function for neatness
     print(f"Beginning training and testing of {training_file} and {testing_file}...")
     start = time()
-    mse, mss, ent, seed = kmeans(training_file, testing_file, k, verbose)
+    mse, mss, ent, seed, c_matrix = kmeans(training_file, testing_file, k, verbose)
     result = (mse, mss, ent, seed)
     end = time()
     test_time = end - start
     print(f'...ending training and testing of {training_file} and {testing_file}, process completed'
           f' in {helper.translate_seconds(test_time)} (HH:MM:SS).\n')
-    return test_time, result
+    if save:
+        helper.save(helper.translate_seconds(test_time), k, mse, mss, ent, seed, c_matrix)
+    return test_time, result, c_matrix
 
 
-total_time, results = test_network("datasets/optdigits.train", "datasets/optdigits.test", 10, True)
+total_time, results, matrix = test_network("datasets/optdigits.train", "datasets/optdigits.test", 10, True, True)
+
+total_time_, results_, matrix_ = test_network("datasets/optdigits.train", "datasets/optdigits.test", 30, True, True)
 
 
-print(f'All tests completed in {helper.translate_seconds(total_time)}.\n')
+print(f'All tests completed in {helper.translate_seconds(total_time + total_time_)}.\n')

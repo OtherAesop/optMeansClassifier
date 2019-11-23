@@ -3,6 +3,7 @@ import random as rand
 import math
 import numpy as np
 import itertools as it
+from PIL import Image
 
 
 class Point(object):
@@ -77,9 +78,8 @@ def update_clusters(clusters):
         accumulator = [0] * m  # Must be the same size as the feature vector
         for point in cluster.points:
             accumulator = [(float(a) + float(b)) for a, b in zip(accumulator, point.features)]
-        # print(accumulator)
         cluster.center = [float(x) / float(m) for x in accumulator]
-        # print(cluster.center)
+
     return changed
 
 
@@ -115,13 +115,19 @@ def k_train(clusters, dataset, labelset, verbose):
     # Iterate the below until convergence
     mse_, mss_, ent_ = calc_kmeans_stats(clusters)
     if verbose:
-        # helper.print_clusters(clusters)
         helper.print_stats(mse_, mss_, ent_)
 
+    counter = 0
+    mse_t, mss_t, ent_t = 0, 0, 0
     while update_clusters(clusters):
+        prev_mse, prev_mss, prev_ent = mse_t, mss_t, ent_t
         mse_, mss_, ent_ = calc_kmeans_stats(clusters)
+        mse_t, mss_t, ent_t = mse_, mss_, ent_
         if verbose:
             helper.print_stats(mse_, mss_, ent_)
+        counter += 1
+        if (mse_t-prev_mse) + (mss_t - prev_mss) + (ent_t - prev_ent) < 5 & counter > 100:  # Probably indicates non-convergence
+            break
 
     return mse_, mss_, ent_, clusters
 
@@ -137,7 +143,7 @@ def kmeans(training_file, test_file, k=10, verbose=False):
     mse_results = list()
     if verbose:
         print("Starting first run...")
-    for counter in range(1):
+    for counter in range(5):
         seed = rand.randint(0, 1000)
         rand.seed(seed)  # init by passed seed
         clusters = [Cluster() for _ in range(k)]  # create clusters
@@ -197,9 +203,16 @@ def kmeans(training_file, test_file, k=10, verbose=False):
             total += c_matrix[y][x]
         c_matrix[y][k+1] = (acc / total) * 100  # Linter might throw warning about the second index being a float here
 
-    helper.print_results_matrix(c_matrix, total_acc)
+    result_matrix = helper.print_results_matrix(c_matrix, total_acc, verbose)
+    cluster_visuals = helper.print_cluster_centers(clusters, verbose)
 
-    print(best_run)
-    print(cluster_labels)
-    return best_run
+    for x, visual in enumerate(cluster_visuals):  # Saves images in test folder
+        image = Image.fromarray(visual)
+        image.convert('P').save("test_results/cluster_img" + str(cluster_labels[x]) + "k" + str(k) + ".png", "PNG")
+
+    if verbose:
+        print(f"Average MSE: {best_run[0]:.2f}, MSS: {best_run[1]:.2f}, Mean Entropy: {best_run[2]:.2f}, Seed Num: {best_run[3]:.2f}")
+        print(result_matrix)
+
+    return best_run[0], best_run[1], best_run[2], best_run[3], result_matrix
 # EOF
