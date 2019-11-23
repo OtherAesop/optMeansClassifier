@@ -75,9 +75,9 @@ def print_cluster_centers(clusters, verbose=False):
     return cluster_visuals
 
 
-def save(time, k, mse, mss, ent, seed, cmatrix):  # Saves important test info
+def save(time, k, mse, mss, ent, seed, cmatrix, non_convergence_inst):  # Saves important test info
     log = open(f"test_results/kmeans_k{k}.txt", "w")
-    log.write(f"{k} clusters, {seed} seed, {time} runtime total.\n")
+    log.write(f"{k} clusters, {seed} seed, {time} runtime total, {non_convergence_inst} instances of non-convergence.\n")
     log.write("Format is as follows {Average Mean Square Error, Mean Square Separation, Mean Entropy}\n")
     log.write(f"Average SE: {mse}, MSS: {mss}, ENT: {ent}\n")
     log.write(f'Confusion Matrix for tests\n')

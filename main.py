@@ -22,14 +22,14 @@ from time import time
 def test_network(training_file, testing_file, k=10, verbose=False, save=False):  # function for neatness
     print(f"Beginning training and testing of {training_file} and {testing_file}...")
     start = time()
-    mse, mss, ent, seed, c_matrix = kmeans(training_file, testing_file, k, verbose)
+    mse, mss, ent, seed, c_matrix, non_convergence_inst = kmeans(training_file, testing_file, k, verbose)
     result = (mse, mss, ent, seed)
     end = time()
     test_time = end - start
     print(f'...ending training and testing of {training_file} and {testing_file}, process completed'
           f' in {helper.translate_seconds(test_time)} (HH:MM:SS).\n')
     if save:
-        helper.save(helper.translate_seconds(test_time), k, mse, mss, ent, seed, c_matrix)
+        helper.save(helper.translate_seconds(test_time), k, mse, mss, ent, seed, c_matrix, non_convergence_inst)
     return test_time, result, c_matrix
 
 

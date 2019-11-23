@@ -119,6 +119,7 @@ def k_train(clusters, dataset, labelset, verbose):
 
     counter = 0
     mse_t, mss_t, ent_t = 0, 0, 0
+    converged = True
     while update_clusters(clusters):
         prev_mse, prev_mss, prev_ent = mse_t, mss_t, ent_t
         mse_, mss_, ent_ = calc_kmeans_stats(clusters)
@@ -126,16 +127,20 @@ def k_train(clusters, dataset, labelset, verbose):
         if verbose:
             helper.print_stats(mse_, mss_, ent_)
         counter += 1
-        if (mse_t-prev_mse) + (mss_t - prev_mss) + (ent_t - prev_ent) < 5 & counter > 100:  # Probably indicates non-convergence
+        if (mse_t-prev_mse) + (mss_t - prev_mss) + (ent_t - prev_ent) < 5 & counter >= 100:  # Probably indicates non-convergence
+            converged = False
+            if verbose:
+                print("Non-convergence detected, finishing training sequence...")
             break
 
-    return mse_, mss_, ent_, clusters
+    return mse_, mss_, ent_, clusters, converged
 
 
 # Returns Mean Squared Error, Mean Square Separation, and Mean Entropy in an ordered tuple
 def kmeans(training_file, test_file, k=10, verbose=False):
     dataset, labelset = helper.make_datasets(training_file)  # Do input step
     t_data, t_labels = helper.make_datasets(test_file)
+    no_converge = 0
     c_matrix = [[0] * (k+2) for _ in range(k)]  # 2d array of size k^2, with 2 extra columns for formatting
     for x in range(k):  # Add 'actual' label column
         c_matrix[x][k] = x
@@ -147,9 +152,11 @@ def kmeans(training_file, test_file, k=10, verbose=False):
         seed = rand.randint(0, 1000)
         rand.seed(seed)  # init by passed seed
         clusters = [Cluster() for _ in range(k)]  # create clusters
-        mse_, mss_, ent_, clusters = k_train(clusters, dataset, labelset, verbose)  # cluster until convergence
+        mse_, mss_, ent_, clusters, converge = k_train(clusters, dataset, labelset, verbose)  # cluster until convergence
         mse_results.append(mse_)  # log results
         results.append([mss_, ent_, seed])  # log results
+        if not converge:  # log non convergence
+            no_converge += 1
         if verbose:
             print(f"Final mean squared error: {mse_}, starting run #{counter+1} of 5...")
     bestdex = mse_results.index(min(mse_results))  # find the index of the best run
@@ -159,7 +166,9 @@ def kmeans(training_file, test_file, k=10, verbose=False):
     # Train new 'best' clustering
     rand.seed(best_run[3])  # init by passed seed
     clusters = [Cluster() for _ in range(k)]  # create clusters
-    mse_, mss_, ent_, clusters = k_train(clusters, dataset, labelset, verbose)  # cluster until convergence
+    mse_, mss_, ent_, clusters, converge = k_train(clusters, dataset, labelset, verbose)  # cluster until convergence
+    if not converge:  # log non convergence
+        no_converge += 1
 
     # Associate clusters with most frequent class label
     cluster_labels = list()
@@ -214,5 +223,5 @@ def kmeans(training_file, test_file, k=10, verbose=False):
         print(f"Average MSE: {best_run[0]:.2f}, MSS: {best_run[1]:.2f}, Mean Entropy: {best_run[2]:.2f}, Seed Num: {best_run[3]:.2f}")
         print(result_matrix)
 
-    return best_run[0], best_run[1], best_run[2], best_run[3], result_matrix
+    return best_run[0], best_run[1], best_run[2], best_run[3], result_matrix, no_converge
 # EOF
