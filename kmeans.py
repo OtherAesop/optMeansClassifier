@@ -103,7 +103,7 @@ def calc_kmeans_stats(clusters):
 
 
 # Does a run of K-means training
-def k_train(clusters, dataset, labelset, verbose):
+def k_train(clusters, dataset, labelset, verbose=False):
     # Create k initial clusters and assign all points to them randomly from training data
     for (label_index, feature) in enumerate(dataset):
         point = Point(labelset[label_index], feature)
@@ -127,7 +127,7 @@ def k_train(clusters, dataset, labelset, verbose):
         if verbose:
             helper.print_stats(mse_, mss_, ent_)
         counter += 1
-        if (mse_t-prev_mse) + (mss_t - prev_mss) + (ent_t - prev_ent) < 5 & counter >= 100:  # Probably indicates non-convergence
+        if (prev_mse - mse_t) + (prev_mss - mss_t) + (prev_ent - ent_t) < 5 and counter >= 100 and counter != 1:  # Probably indicates non-convergence
             converged = False
             if verbose:
                 print("Non-convergence detected, finishing training sequence...")
@@ -202,7 +202,7 @@ def kmeans(training_file, test_file, k=10, verbose=False):
         c_matrix[actual-1][prediction-1] += 1
         if prediction == actual:
             acc_pred += 1
-    total_acc = (acc_pred / len(t_labels)) * 100  # Store as a %
+
     for y in range(k):  # Calculate accuracy percentages
         acc = 0
         total = 0
@@ -210,9 +210,19 @@ def kmeans(training_file, test_file, k=10, verbose=False):
             if x == y:
                 acc = c_matrix[y][x]
             total += c_matrix[y][x]
-        c_matrix[y][k+1] = (acc / total) * 100  # Linter might throw warning about the second index being a float here
+        if total != 0:  # It is possible to only access indexes with a 0 value and we cannot divide by zero
+            c_matrix[y][k+1] = (acc / total) * 100  # Linter might throw warning about the second index being a float here
+        elif total == 0 and acc == 0:  # Counts edge case where there are no instances of a class in the set
+            c_matrix[y][k+1] = 100  # Linter might throw warning about the second index being a float here
+        else:
+            c_matrix[y][k+1] = 0  # Linter might throw warning about the second index being a float here
 
-    result_matrix = helper.print_results_matrix(c_matrix, total_acc, verbose)
+    accum = 0  # Counts class edge case where there are no instances of a class in the set
+    for y in range(k):
+        accum += c_matrix[y][k+1]
+    total_acc_perc = accum / k
+
+    result_matrix = helper.print_results_matrix(c_matrix, total_acc_perc, verbose, k)
     cluster_visuals = helper.print_cluster_centers(clusters, verbose)
 
     for x, visual in enumerate(cluster_visuals):  # Saves images in test folder

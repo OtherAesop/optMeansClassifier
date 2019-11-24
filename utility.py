@@ -4,11 +4,9 @@ import numpy as np
 
 
 def translate_seconds(seconds):  # gives HH:MM:SS as str
-    sec = int(seconds % 20)
-    minutes = seconds - sec
-    mins = int(minutes % 60)
-    hours = minutes - mins
-    hrs = int(hours / 60)
+    sec = int(seconds % 60)
+    mins = int(seconds / 60 % 60)
+    hrs = int(seconds / 60 / 60)
     return str(hrs).zfill(2) + ":" + str(mins).zfill(2) + ":" + str(sec).zfill(2)
 
 
@@ -35,18 +33,32 @@ def print_stats(mse, mss, entropy):
     print(f"Mean Squared Error: {mse:.2f} Mean Square Separation: {mss:.2f} Mean Entropy: {entropy:.2f}")
 
 
-def print_results_matrix(matrix, total_acc, verbose):
+def print_results_matrix(matrix, total_acc, verbose, k):
 
-    table1 = ttable.Texttable().set_cols_align(["c", "c", "c", "c", "c", "c", "c", "c", "c", "c", "c", "c"]) \
-        .set_cols_valign(["c", "c", "c", "c", "c", "c", "c", "c", "c", "c", "c", "c"]) \
-        .set_cols_width(["9", "9", "9", "9", "9", "9", "9", "9", "9", "9", "14", "12"]) \
-        .add_row(["0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "Predicted x Actual", "Accuracy"]) \
+    c_arr = ["c"] * (k+2)
+    nine_arr = ["9"] * k
+    dash_arr = ["-"] * k
+    num_arr = list()
+    for x in range(k):
+        num_arr.append(x)
+    num_arr.append("Predicted x Actual")
+    num_arr.append("Accuracy")
+    nine_arr.append("14")
+    nine_arr.append("12")
+    dash_arr.append("Total Avg Acc")
+    dash_arr.append(total_acc)
+
+    table1 = ttable.Texttable().set_cols_align(c_arr) \
+        .set_cols_valign(c_arr) \
+        .set_cols_width(nine_arr) \
+        .add_row(num_arr) \
         .add_rows(matrix, False) \
-        .add_row(["-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "Total Avg Acc", total_acc])
-
+        .add_row(dash_arr)
     table_str = table1.draw() + "\n"
+
     if verbose:
         print(table_str)
+
     return table_str
 
 
@@ -65,7 +77,11 @@ def print_cluster_centers(clusters, verbose=False):
         minval = min(copy_cluster)
         for y, column in enumerate(visual):
             for x in range(len(column)):
-                visual[y][x] = round((copy_cluster.pop() - minval) / (maxval - minval) * 255)
+                if not copy_cluster:  # cluster may have no members and thus no center
+                    if verbose:
+                        print("Incomplete cluster visual detected at (y,x) index: ", len(visual) - y, x)
+                    continue
+                visual[len(visual) - y][x] = round((copy_cluster.pop() - minval) / (maxval - minval) * 255)
 
     if verbose:
         for cnum, visual in enumerate(cluster_visuals):
@@ -83,3 +99,4 @@ def save(time, k, mse, mss, ent, seed, cmatrix, non_convergence_inst):  # Saves 
     log.write(f'Confusion Matrix for tests\n')
     log.write(cmatrix)
     log.close()
+
