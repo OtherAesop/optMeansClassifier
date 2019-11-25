@@ -96,7 +96,7 @@ def save(time, k, mse, mss, ent, seed, cmatrix, non_convergence_inst):  # Saves 
     log = open(f"test_results/kmeans_k{k}.txt", "w")
     log.write(f"{k} clusters, {seed} seed, {time} runtime total, {non_convergence_inst} instances of non-convergence.\n")
     log.write("Format is as follows {Average Mean Square Error, Mean Square Separation, Mean Entropy}\n")
-    log.write(f"Average SE: {mse}, MSS: {mss}, ENT: {ent}\n")
+    log.write(f"Average MSE: {mse}, MSS: {mss}, ENT: {ent}\n")
     log.write(f'Confusion Matrix for tests\n')
     log.write(cmatrix)
     log.close()
