@@ -18,7 +18,6 @@ class Cluster(object):
         self.points = []
 
 
-# Possibly need root to match mss function?
 def dist(x_vec, y_vec):  # Euclidean distance, takes and returns list
     return math.sqrt(sum([(float(a) - float(b)) ** 2 for a, b in zip(x_vec, y_vec)]))
 
@@ -137,7 +136,7 @@ def k_train(clusters, dataset, labelset, verbose=False):
 
 
 # Returns Mean Squared Error, Mean Square Separation, and Mean Entropy in an ordered tuple
-def kmeans(training_file, test_file, k=10, verbose=False):
+def kmeans(training_file, test_file, k=10, verbose=False, save=False):
     dataset, labelset = helper.make_datasets(training_file)  # Do input step
     t_data, t_labels = helper.make_datasets(test_file)
     no_converge = 0
@@ -225,9 +224,10 @@ def kmeans(training_file, test_file, k=10, verbose=False):
     result_matrix = helper.print_results_matrix(c_matrix, total_acc_perc, verbose, k)
     cluster_visuals = helper.print_cluster_centers(clusters, verbose)
 
-    for x, visual in enumerate(cluster_visuals):  # Saves images in test folder
-        image = Image.fromarray(visual)
-        image.convert('P').save("test_results/cluster_img" + str(x) + "-" + str(cluster_labels[x]) + "k" + str(k) + ".png", "PNG")
+    if save:
+        for x, visual in enumerate(cluster_visuals):  # Saves images in test folder
+            image = Image.fromarray(visual)
+            image.convert('P').save("test_results/cluster_img" + str(x) + "-" + str(cluster_labels[x]) + "k" + str(k) + ".png", "PNG")
 
     if verbose:
         print(f"Average MSE: {best_run[0]:.2f}, MSS: {best_run[1]:.2f}, Mean Entropy: {best_run[2]:.2f}, Seed Num: {best_run[3]:.2f}")
