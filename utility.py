@@ -62,6 +62,7 @@ def print_results_matrix(matrix, total_acc, verbose, k):
     return table_str
 
 
+# Prepares cluster visualization and prints to console if verbose is true
 def print_cluster_centers(clusters, verbose=False):
     cluster_visuals = list()
     for _ in range(len(clusters)):  # make an 8x8 grid for each cluster
@@ -79,9 +80,9 @@ def print_cluster_centers(clusters, verbose=False):
             for x in range(len(column)):
                 if not copy_cluster:  # cluster may have no members and thus no center
                     if verbose:
-                        print("Incomplete cluster visual detected at (y,x) index: ", len(visual) - y, x)
+                        print("Incomplete cluster visual detected at (y,x) index: ", len(visual) - 1 - y, len(column) - 1 - x)
                     continue
-                visual[len(visual) - y][x] = round((copy_cluster.pop() - minval) / (maxval - minval) * 255)
+                visual[len(visual) - 1 - y][len(column) - 1 - x] = round((copy_cluster.pop() - minval) / (maxval - minval) * 255)
 
     if verbose:
         for cnum, visual in enumerate(cluster_visuals):

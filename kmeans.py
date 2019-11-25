@@ -211,7 +211,7 @@ def kmeans(training_file, test_file, k=10, verbose=False):
                 acc = c_matrix[y][x]
             total += c_matrix[y][x]
         if total != 0:  # It is possible to only access indexes with a 0 value and we cannot divide by zero
-            c_matrix[y][k+1] = (acc / total) * 100  # Linter might throw warning about the second index being a float here
+            c_matrix[y][k+1] = (acc / total) * 100  # Linter might throw warning about the second index being a float
         elif total == 0 and acc == 0:  # Counts edge case where there are no instances of a class in the set
             c_matrix[y][k+1] = 100  # Linter might throw warning about the second index being a float here
         else:
@@ -227,7 +227,7 @@ def kmeans(training_file, test_file, k=10, verbose=False):
 
     for x, visual in enumerate(cluster_visuals):  # Saves images in test folder
         image = Image.fromarray(visual)
-        image.convert('P').save("test_results/cluster_img" + str(cluster_labels[x]) + "k" + str(k) + ".png", "PNG")
+        image.convert('P').save("test_results/cluster_img" + str(x) + "-" + str(cluster_labels[x]) + "k" + str(k) + ".png", "PNG")
 
     if verbose:
         print(f"Average MSE: {best_run[0]:.2f}, MSS: {best_run[1]:.2f}, Mean Entropy: {best_run[2]:.2f}, Seed Num: {best_run[3]:.2f}")
